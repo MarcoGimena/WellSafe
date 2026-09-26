@@ -1,0 +1,31 @@
+#define SOIL_AO_PIN 33 // Analog signal connected to GPIO 34 (ADC1 input-only)
+
+// Calibration thresholds (Adjust based on your Serial Monitor readings)
+const int DRY_VAL = 1200;  // High raw reading in dry air/soil -> maps to 0%
+const int WET_VAL = 3500;  // Low raw reading in water/wet soil  -> maps to 100%
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Set ESP32 ADC resolution (0-4095) and full 3.3V attenuation
+  analogReadResolution(12);
+  analogSetPinAttenuation(SOIL_AO_PIN, ADC_11db);
+  
+  Serial.println("3-Pin Soil Moisture Sensor Active");
+}
+
+void loop() {
+  int raw = analogRead(SOIL_AO_PIN);
+  
+  // Map high raw value (dry) to 0% and low raw value (wet) to 100%
+  int moisture_percent = map(raw, DRY_VAL, WET_VAL, 0, 100);
+  moisture_percent = constrain(moisture_percent, 0, 100);
+
+  Serial.print("Raw ADC: ");
+  Serial.print(raw);
+  Serial.print(" | Soil Moisture: ");
+  Serial.print(moisture_percent);
+  Serial.println("%");
+
+  delay(1500);  // Updates every 1.5 seconds
+}
