@@ -1,0 +1,36 @@
+#define AO_PIN 34  // Moved to GPIO 34 (ADC1) to prevent Wi-Fi/ADC2 conflicts
+#define DO_PIN 26  // Digital threshold output
+
+// Calibration values: High voltage when dry, low voltage when wet
+const int DRY_VAL = 250;  // Raw ADC reading when dry  -> maps to 0%
+const int WET_VAL = 3500;   // Raw ADC reading when wet  -> maps to 100%
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(DO_PIN, INPUT);
+  
+  // Configure ESP32 ADC parameters
+  analogReadResolution(12);
+  analogSetPinAttenuation(AO_PIN, ADC_11db);
+  
+  Serial.println("Rain Sensor Diagnostic Active");
+}
+
+void loop() {
+  int raw = analogRead(AO_PIN);
+  
+  // Inverted mapping: 3500 -> 0%, 250 -> 100%
+  int wet_percent = map(raw, DRY_VAL, WET_VAL, 0, 100);
+  wet_percent = constrain(wet_percent, 0, 100);
+
+  int digital = digitalRead(DO_PIN);
+
+  Serial.print("Raw: ");
+  Serial.print(raw);
+  Serial.print(" | Wetness: ");
+  Serial.print(wet_percent);
+  Serial.print("% | Digital Trigger: ");
+  Serial.println(digital);
+
+  delay(1500);  // Readable update interval
+}
